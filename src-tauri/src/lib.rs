@@ -45,7 +45,7 @@ pub fn run() {
             commands::cache_get_info, commands::cache_clear, commands::cache_clear_category,
             commands::cache_get_cover, commands::cache_put_cover, commands::cache_put_covers,
             commands::cache_put_toc, commands::cache_get_toc,
-            commands::cache_put_content, commands::cache_get_content,
+            commands::cache_put_content, commands::cache_get_content, commands::cache_delete_content,
             commands::cache_has_cover, commands::cache_set_max_size, commands::cache_migrate,
             commands::comic_fetch_image, commands::comic_prefetch_images, commands::comic_clear_cache,
             commands::get_hostname,

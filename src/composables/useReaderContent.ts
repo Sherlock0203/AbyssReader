@@ -8,6 +8,7 @@
 // ============================================
 
 import { ref, computed, nextTick, watch } from 'vue'
+import { useMessage } from 'naive-ui'
 import DOMPurify from 'isomorphic-dompurify'
 import { useReaderStore, useBookshelfStore } from '@/stores'
 import { useReplaceRuleStore } from '@/stores/replace-rules.js'
@@ -30,6 +31,7 @@ interface ReaderContextMenuLike {
 }
 
 export function useReaderContent(book: Book | null, source: BookSource | null, _initialChapters?: Chapter[]) {
+  const message = useMessage()
   const readerStore = useReaderStore()
   const bookshelfStore = useBookshelfStore()
   const replaceRuleStore = useReplaceRuleStore()
@@ -44,6 +46,7 @@ export function useReaderContent(book: Book | null, source: BookSource | null, _
   const contentRef = ref<HTMLElement | null>(null)
 
   const isSelecting = ref(false)
+  const refreshingChapter = ref(false)
   let selectionTimeout: ReturnType<typeof setTimeout> | null = null
   let textSelectPending = false
 
@@ -246,6 +249,28 @@ export function useReaderContent(book: Book | null, source: BookSource | null, _
     scrollPercent.value = 0
   }
 
+  /**
+   * 重新抓取当前章节：清缓存 + 重新走网络，用于正文残缺、
+   * 加载失败或站点内容更新后手动刷新。
+   */
+  async function refreshChapter(): Promise<void> {
+    if (!book || !source) return
+    if (loadingContent.value || refreshingChapter.value) return
+    if (!currentChapter.value) return
+
+    refreshingChapter.value = true
+    try {
+      await loadChapter(true)
+      if (content.value && !content.value.includes('加载章节失败')) {
+        message.success('本章已刷新')
+      }
+    } catch {
+      message.error('刷新失败，请稍后重试')
+    } finally {
+      refreshingChapter.value = false
+    }
+  }
+
   async function prevChapter(): Promise<void> {
     await saveProgress(currentChapter.value?.id ?? 0, scrollPercent.value, currentChapter.value?.title || '')
     prevCh()
@@ -304,6 +329,7 @@ export function useReaderContent(book: Book | null, source: BookSource | null, _
     effectiveTheme, effectiveFontSize, effectiveLineHeight, sanitizedContent,
     tocPopupRef, settingsRef, readerCtxRef, contentRef,
     loadChaptersForBook, loadChapter, startPreload,
+    refreshChapter, refreshingChapter,
     prevChapter, nextChapter, retryComicImage, handleClose, handleKeydown,
     openToc, openSettings, onTocSelect, handleContentClick, handleScroll, handleTextSelect,
     copySelectionFromCtx, openDictFromCtx, switchDictTab,
