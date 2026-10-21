@@ -110,6 +110,19 @@ pub fn run() {
                 }
             };
 
+            // 关键：抓取降级用的隐藏 WebView（webview_persistent_*）、登录窗口、
+            // 嵌入式 WebView 都是真实窗口。只要它们还开着，Tauri 就认为「还有窗口」，
+            // 主窗口关闭后进程不会退出，用户会看到应用已关但后台仍在跑。
+            // 这里在主窗口收到关闭请求时主动清理所有辅助窗口并退出进程。
+            let app_for_close = app.handle().clone();
+            window.on_window_event(move |event| {
+                if let tauri::WindowEvent::CloseRequested { .. } = event {
+                    crate::js_runtime::ops::cleanup_all_embedded_webviews();
+                    crate::js_runtime::ops::close_persistent_webview();
+                    app_for_close.exit(0);
+                }
+            });
+
             crate::js_runtime::ops::set_main_window(window);
 
             Ok(())
