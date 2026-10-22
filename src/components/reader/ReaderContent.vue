@@ -82,7 +82,7 @@ defineExpose({ contentRef })
 .reader-content::-webkit-scrollbar { display: none !important; }
 .content-inner { max-width: 720px; margin: 0 auto; padding: 28px 36px 12px; }
 /* 段落间距由阅读设置控制，首段不留额外上边距 */
-.content-inner :deep(p) { margin: 0 0 var(--reader-paragraph-spacing, 1em); }
+.content-inner :deep(p) { margin: 0 0 var(--reader-paragraph-spacing, 0em); }
 .content-comic { width: 100%; }
 .comic-page { width: 100%; min-height: 100px; }
 .comic-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; color: var(--text-muted); font-size: 14px; min-height: 200px; }
