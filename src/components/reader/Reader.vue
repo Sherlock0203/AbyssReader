@@ -33,6 +33,7 @@
           :loading-content="loadingContent"
           :font-size="effectiveFontSize"
           :line-height="effectiveLineHeight"
+          :paragraph-spacing="effectiveParagraphSpacing"
           :chapter-index="chapterIndex"
           :total-chapters="chapters.length"
           :can-prev="chapterIndex > 0"
@@ -96,7 +97,7 @@ const rc = useReaderContent(props.book, sourceValue, props.initialChapters)
 const {
   loadingContent, chapterIndex, chapters, isComic, comicImages, scrollPercent, currentChapter,
   dictVisible, dictRules, dictActiveTab, dictLoading, dictContents, showControls,
-  effectiveTheme, effectiveFontSize, effectiveLineHeight, sanitizedContent,
+  effectiveTheme, effectiveFontSize, effectiveLineHeight, effectiveParagraphSpacing, sanitizedContent,
   tocPopupRef, settingsRef, readerCtxRef,
   loadChaptersForBook, loadChapter, refreshChapter, refreshingChapter,
   prevChapter, nextChapter, retryComicImage, handleClose, handleKeydown,

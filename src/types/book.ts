@@ -24,6 +24,8 @@ export interface ReadConfig {
   _fontSize?: number
   /** 内部字段：书籍独立转换类型 */
   _converterType?: number
+  /** 内部字段：书籍独立段落间距（em） */
+  _paragraphSpacing?: number
 }
 
 export interface Book {

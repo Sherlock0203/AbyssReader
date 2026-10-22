@@ -89,6 +89,15 @@ export function useReaderContent(book: Book | null, source: BookSource | null, _
 
   const effectiveLineHeight = computed(() => lineHeight.value)
 
+  // 段落间距以 em 存储，随字号缩放；本书独立配置优先于全局。
+  const effectiveParagraphSpacing = computed(() => {
+    const cfg = currentBook.value?.readConfig
+    if (cfg && cfg._useGlobal === false && typeof cfg._paragraphSpacing === 'number') {
+      return cfg._paragraphSpacing
+    }
+    return readerStore.paragraphSpacing
+  })
+
   const effectiveReSegment = computed(() => {
     const cfg = currentBook.value?.readConfig
     if (cfg && cfg._useGlobal === false && typeof cfg.reSegment === 'boolean') return cfg.reSegment
@@ -455,7 +464,7 @@ export function useReaderContent(book: Book | null, source: BookSource | null, _
   return {
     content, loadingContent, chapterIndex, chapters, isComic, comicImages, scrollPercent, currentChapter,
     dictVisible, dictRules, dictActiveTab, dictLoading, dictContents, showControls,
-    effectiveTheme, effectiveFontSize, effectiveLineHeight, sanitizedContent,
+    effectiveTheme, effectiveFontSize, effectiveLineHeight, effectiveParagraphSpacing, sanitizedContent,
     tocPopupRef, settingsRef, readerCtxRef, contentRef,
     loadChaptersForBook, loadChapter, startPreload,
     refreshChapter, refreshingChapter,
