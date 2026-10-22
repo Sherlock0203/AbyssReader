@@ -81,6 +81,7 @@ import TocPopup from './TocPopup.vue'
 import DictPanel from './DictPanel.vue'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import { ContextMenu, ContextMenuItem } from '@/components/common/ContextMenu/index.js'
+import { chapterPosToPercent } from '@/utils/reading-position.js'
 import type { Book, BookSource, Chapter } from '@/types'
 
 const props = defineProps<{ book: Book | null; source?: BookSource | null; initialChapters?: Chapter[] }>()
@@ -131,17 +132,33 @@ onMounted(async () => {
   replaceRuleStore.loadRules()
   if (props.book && sourceValue) {
     await loadChaptersForBook(props.book, sourceValue, props.initialChapters)
-    const forcedIndex = (props.book as unknown as Record<string, unknown>)._forceChapterIndex
+
+    const meta = props.book as unknown as Record<string, unknown>
+    const forcedIndex = meta._forceChapterIndex
+    const progress = await readerStore.loadProgress(props.book.bookUrl, props.book.name, props.book.author)
+
     if (typeof forcedIndex === 'number' && forcedIndex >= 0 && forcedIndex < chapters.value.length) {
       chapterIndex.value = forcedIndex
-    } else {
-      const progress = await readerStore.loadProgress(props.book.bookUrl, props.book.name, props.book.author)
-      if (progress) {
-        const idx = chapters.value.findIndex((ch) => Number(ch.id) === Number(progress.chapterId))
-        if (idx !== -1) chapterIndex.value = idx
-      }
+    } else if (progress) {
+      const idx = chapters.value.findIndex((ch) => Number(ch.id) === Number(progress.chapterId))
+      if (idx !== -1) chapterIndex.value = idx
     }
-    await loadChapter()
+
+    // 「继续阅读」恢复到上次关闭时的章节内位置；
+    // 从目录明确点选章节（_restoreReadingPosition === false）则从章节开头开始。
+    let restorePercent = 0
+    const targetChapter = chapters.value[chapterIndex.value]
+    const restoreAllowed = meta._restoreReadingPosition !== false
+    if (
+      restoreAllowed &&
+      progress &&
+      targetChapter &&
+      Number(targetChapter.id) === Number(progress.chapterId)
+    ) {
+      restorePercent = chapterPosToPercent(progress.chapterPos)
+    }
+
+    await loadChapter(false, restorePercent)
   }
   window.addEventListener('keydown', handleKeydown)
 })
