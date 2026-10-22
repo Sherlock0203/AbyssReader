@@ -184,11 +184,30 @@ cmd.exe /c "cd /d C:\Apps\AbyssReader && npm run build"
 - Tauri 发布构建应使用 Windows 工具链（WebView2 + MSVC + Rust stable）。完整构建约 3 分钟；NSIS 工具由 Tauri 缓存在 `%LOCALAPPDATA%\tauri\NSIS`。
 - 构建前确认 `AbyssReader.exe` 未运行，必要时先结束进程再构建。
 
+## 构建约定
+
+- **每次新增功能或修复 bug 后，必须执行构建**，确认构建通过后再进行本地提交和交付，不要只改源码而不验证构建。
+- 默认执行完整桌面构建：
+
+```bash
+npm run tauri build
+```
+
+这会重新构建前端、编译 `src-tauri` 的 Rust release，并更新可执行文件和 NSIS 安装包。
+
+- 只改前端、且本轮明确不需要桌面成品时，可以至少执行 `npm run build`；但最终交付或需要验证桌面行为前，必须补跑 `npm run tauri build`。
+- 改动涉及 Rust、Tauri 命令、权限/capability、`tauri.conf.json` 或安装包配置时，必须执行 `npm run tauri build`，不能只用 `npm run build`。
+- 构建前确认 `AbyssReader.exe` 未运行；需要结束正在运行的应用时先告知用户。
+- 构建必须成功（退出码 0）。构建失败时先修复，不要提交或声称任务完成。
+- 构建产物位于 `dist/`、`src-tauri/target/`，已加入 `.gitignore`，不要提交。
+- 仅修改文档（如 README、AGENTS.md）时可以跳过构建；如果同时改了任何源码，仍按上述规则构建。
+- 最终回复中应说明执行了哪种构建、是否成功，以及产物路径。
+
 ## Git 提交约定
 
-- **每次修复 bug 或增加新功能后，必须在本地创建 git commit**，不要攒到最后一次性提交。
+- **每次修复 bug 或增加新功能后，必须先按「构建约定」完成构建，再在本地创建 git commit**，不要攒到最后一次性提交。
 - 一个可独立验证的修复或功能对应一个提交；修复与功能尽量分开，不要在一个提交里混入无关改动。
-- 提交前先完成与改动相关的验证（`npm run typecheck`、`npm run lint`、`npx vitest run`、`npm run build` 或 `cargo check` 等），并检查 `git diff` 与 `git status`。
+- 提交前先完成与改动相关的验证（`npm run typecheck`、`npm run lint`、`npx vitest run`，以及「构建约定」要求的构建），并检查 `git diff` 与 `git status`。
 - 只 `git add` 本次改动相关的文件。不要用 `git add -A` 把构建产物、缓存、临时文件、凭据或其他人的未完成改动一起提交。
 - 提交信息沿用仓库现有风格，使用中文描述：
   - `fix(reader): 修复重新打开书籍时未恢复阅读位置`
